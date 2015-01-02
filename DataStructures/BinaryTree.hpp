@@ -43,9 +43,8 @@ void BST::insertItem(int item)
 	else
 	{
 		// Create a pointer to traverse the tree, starting at the root
-		TreeNode *parent;
-		TreeNode *current;
-		current = root;
+		TreeNode *parent = nullptr;
+		TreeNode *current = root;
 
 		// Find correct position for new node; smaller elements go left, larger elements go right
 		while (current)
@@ -77,9 +76,8 @@ void BST::removeItem(int item)
 		return;
 	}
 
-	TreeNode *current;
-	TreeNode *parent;
-	current = root;
+	TreeNode *parent = nullptr;
+	TreeNode *current = root;
 
 	// Traverse tree to find item
 	while (current)
