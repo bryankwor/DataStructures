@@ -154,3 +154,11 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+DataStructures.vcxproj
+DataStructures.vcxproj.filters
+ReadMe.txt
+stdafx.cpp
+stdafx.h
+targetver.h
+DataStructures.cpp
+DataStructures.sln
