@@ -1,88 +1,63 @@
 #include <iostream>
-using namespace std;
 
-struct TreeNode;
-
-class BST
-{
-public:
-	BST();
-
-	void insertItem(int item);
-	void removeItem(int item);
-	void preOrder(TreeNode *p);
-	void inOrder(TreeNode *p);
-	void postOrder(TreeNode *p);
-	void findMaxAtLevelK(TreeNode *p, int level);
-
-	TreeNode *root;
-};
-
+template <class T>
 struct TreeNode
 {
-	int value;
-	TreeNode *left;
-	TreeNode *right;
+private:
+	TreeNode* _leftChild;
+	TreeNode* _rightChild;
+	T _value;
+
+public:
+	// Constructors / Destructors.
+	TreeNode() : _leftChild(nullptr), _right(nullptr), _value(0) {}
+
+	// Getters / Setters.
+	TreeNode* getLeftChild() const { return _leftChild; }
+	void setLeftChild(const TreeNode* newLeftChild) { _leftChild = newLeftChild; }
+
+	TreeNode* getRightChild() const { return _rightChild; }
+	void setRightChild(const TreeNode* newRightChild) { _rightChild = newRightChild; }
+
+	T getValue() const { return _value; }
+	void setValue(const T &value) { _value = value; }
 };
 
-BST::BST()
+template <class T>
+class BST
 {
-	root = NULL;
-}
+private:
+	TreeNode* _root;
 
-void BST::insertItem(int item)
-{
-	TreeNode *newNode = new TreeNode;
-	newNode->value = item;
-	newNode->left = NULL;
-	newNode->right = NULL;
+private:
+	TreeNode* getItemPositionInTree(const T &item, TreeNode* parent);
 
-	// Check if the tree is new
-	if (root == NULL)
-		root = newNode;
-	else
-	{
-		// Create a pointer to traverse the tree, starting at the root
-		TreeNode *parent = nullptr;
-		TreeNode *current = root;
+public:
+	// Constructors / Desctructors.
+	BST() : root(nullptr) {}
 
-		// Find correct position for new node; smaller elements go left, larger elements go right
-		while (current)
-		{
-			parent = current;
+	// Member Functions.
+	bool contains(const T &item) const;
 
-			if (item >= current->value)
-				current = current->right;
-			else
-				current = current->left;
-		}
+	void insertItem(const T &item);
+	void removeItem(const T &item);
 
-		if (item >= parent->value)
-			parent->right = newNode;
-		else
-			parent->left = newNode;
-	}
-}
+	void findMaxAtLevel(TreeNode *p, const int &level) const;
+	void preOrder(TreeNode *p) const;
+	void inOrder(TreeNode *p) const;
+	void postOrder(TreeNode *p) const;
+};
 
-
-void BST::removeItem(int item)
+template <class T>
+TreeNode* getItemPositionInTree(const T &item, TreeNode* parent)
 {
 	bool found = false;
-
-	// Check if the tree is empty
-	if (root == NULL)
-	{
-		cout << "Tree is empty." << endl;
-		return;
-	}
-
-	TreeNode *parent = nullptr;
 	TreeNode *current = root;
 
-	// Traverse tree to find item
+	// Traverse tree to find item.
 	while (current)
 	{
-		if (current->value == item)
+		if (item == current->getValue())
 		{
 			found = true;
 			break;
@@ -90,199 +65,310 @@ void BST::removeItem(int item)
 		else
 		{
 			parent = current;
-			if (item > current->value)
-				current = current->right;
+			if (item > current->getValue())
+			{
+				current = current->getRightChild();
+			}
 			else
-				current = current->left;
+			{
+				current = current->getLeftChild();
+			}
 		}
 	}
 
-	// Return if the item was not found
-	if (!found)
+	if (current == nullptr)
 	{
-		cout << "Item does not exist." << endl;
-		return;
+		// TODO: Assert (Attempt to find nonexistent item in tree!)
 	}
+	return current;
+}
 
-	// If the item was found there are 3 cases to handle
+template <class T>
+bool contains(const T &item) const
+{
+	// TODO: This can be optimized by having the insert function store the value of each new item added to the tree in a hash table.
+	// Then this function can just look up the value in the hash table in constant time, provided there are no collisions.
+	TreeNode *current = root;
 
-	// Case 1: The item is in a leaf node
-	if (current->left == NULL && current->right == NULL)
+	// Traverse tree to find item.
+	while (current)
 	{
-		if (parent->left == current)
-			parent->left = NULL;
-		else
-			parent->right = NULL;
-
-		delete current;
-		return;
-	}
-
-	// Case 2: The item is in a node with 1 child
-	else if ((current->left == NULL && current->right != NULL) ||
-		(current->left != NULL && current->right == NULL))
-	{
-		// Is the node's 1 child in the right?
-		if (current->left == NULL)
+		if (item == current->getValue())
 		{
-			// Is the node a left child?
-			if (parent->left == current)
-			{
-				parent->left = current->right;
-				delete current;
-			}
-			// Node is a right child
-			else
-			{
-				parent->right = current->right;
-				delete current;
-			}
+			return true;
 		}
-		// Node's 1 child is in the left
 		else
 		{
-			if (parent->left == current)
+			if (item > current->getValue())
 			{
-				parent->left = current->left;
-				delete current;
+				current = current->getRightChild();
 			}
 			else
 			{
-				parent->right = current->left;
-				delete current;
+				current = current->getLeftChild();
 			}
 		}
-
-		return;
 	}
 
-	// Case 3: The item is in a node with 2 children.
+	return false;
+}
+
+template <class T>
+void BST::insertItem(const T &item)
+{
+	TreeNode* newNode = new TreeNode();
+	newNode->setValue(item);
+
+	// Check if the tree is new.
+	if (root == nullptr)
+	{
+		root = newNode;
+	}
 	else
 	{
-		TreeNode *check;
-		check = current->right;
+		// Create a pointer to traverse the tree, starting at the root.
+		TreeNode *parent = nullptr;
+		TreeNode *current = root;
 
-		// Does right child have any children?
-		if ((check->left == NULL) && (check->right == NULL))
+		// Find correct position for new node; smaller elements go left, larger elements go right.
+		while (current)
 		{
-			current = check;
-			delete check;
-			current->right = NULL;
+			parent = current;
+
+			if (item >= current->getValue())
+			{
+				current = current->getRightChild();
+			}
+			else
+			{
+				current = current->getLeftChild();
+			}
 		}
-		// Right child has children
+
+		if (item >= parent->getValue())
+		{
+			parent->setRightChild(newNode);
+		}
 		else
 		{
-			// If the right child has a left child, move all the way down left to locate smallest item
-			if ((current->right)->left != NULL)
-			{
-				TreeNode *leftCurrent;
-				TreeNode *leftCurrentPtr;
-				leftCurrentPtr = current->right;
-				leftCurrent = (current->right)->left;
+			parent->setLeftChild(newNode);
+		}
+	}
+}
 
-				while (leftCurrent->left != NULL)
+template <class T>
+void BST::removeItem(const T &item)
+{
+	// Check if the tree is empty or doesn't contain the item.
+	if (root == nullptr || !contains(item))
+	{
+		return;
+	}
+	// Item exists. Get its position in the tree and handle 3 deletion cases.
+	else
+	{
+		TreeNode* parent = nullptr;
+		TreeNode* current = getItemPositionInTree(item, parent);
+
+		// Case 1: The item is in a leaf node.
+		if (current->getLeftChild() == nullptr && current->getRightChild() == nullptr)
+		{
+			if (current == parent->getLeftChild())
+			{
+				parent->getLeftChild() = nullptr;
+			}
+			else
+			{
+				parent->getRightChild() = nullptr;
+			}
+
+			delete current;
+			return;
+		}
+
+		// Case 2: The item is in a node with 1 child.
+		else if ((current->getLeftChild() == nullptr && current->getRightChild() != nullptr) ||
+			(current->getLeftChild() != nullptr && current->getRightChild() == nullptr))
+		{
+			// Is the node's 1 child in the right?
+			if (current->getLeftChild() == nullptr)
+			{
+				// Is the node a left child?
+				if (parent->getLeftChild() == current)
 				{
-					leftCurrentPtr = leftCurrent;
-					leftCurrent = leftCurrent->left;
+					parent->setLeftChild(current->getRightChild());
+					delete current;
 				}
-				current->value = leftCurrent->value;
-				delete leftCurrent;
-				leftCurrentPtr->left = NULL;
+				// Node is a right child
+				else
+				{
+					parent->setRightChild(current->getRightChild());
+					delete current;
+				}
 			}
-
+			// Node's 1 child is in the left
 			else
 			{
-				TreeNode *temp;
-				temp = current->right;
-				current->value = temp->value;
-				current->right = temp->right;
-				delete temp;
+				if (parent->getLeftChild() == current)
+				{
+					parent->setLeftChild(current->getLeftChild());
+					delete current;
+				}
+				else
+				{
+					parent->setRightChild(current->getLeftChild());
+					delete current;
+				}
 			}
+
+			return;
 		}
 
-		return;
+		// Case 3: The item is in a node with 2 children.
+		else
+		{
+			TreeNode *check;
+			check = current->getRightChild();
+
+			// Does right child have any children?
+			if ((check->getLeftChild() == nullptr) && (check->getRightChild() == nullptr))
+			{
+				current = check;
+				delete check;
+				current->setRightChild(nullptr);
+			}
+			// Right child has children
+			else
+			{
+				// If the right child has a left child, move all the way down left to locate smallest item
+				if ((current->getRightChild())->getLeftChild() != nullptr)
+				{
+					TreeNode *leftCurrent;
+					TreeNode *leftCurrentPtr;
+					leftCurrentPtr = current->getRightChild();
+					leftCurrent = (current->getRightChild())->getLeftChild();
+
+					while (leftCurrent->getLeftChild() != nullptr)
+					{
+						leftCurrentPtr = leftCurrent;
+						leftCurrent = leftCurrent->getLeftChild();
+					}
+					current->setValue(leftCurrent->getValue());
+					delete leftCurrent;
+					leftCurrentPtr->setLeftChild(nullptr);
+				}
+
+				else
+				{
+					TreeNode *temp;
+					temp = current->getRightChild();
+					current->setValue(temp->getValue());
+					current->setRightChild(temp->getRightChild());
+					delete temp;
+				}
+			}
+		}
 	}
 }
 
-// Root, Left, Right
-
-void BST::preOrder(TreeNode *p)
+template <class T>
+void BST::findMaxAtLevel(TreeNode *p, const int &level) const
 {
-	if (root != NULL)
-	{
-		cout << " " << p->value << " ";
-
-		if (p->left)
-			preOrder(p->left);
-
-		if (p->right)
-			preOrder(p->right);
-	}
-	else
-		return;
-}
-
-// Left, Root, Right
-
-void BST::inOrder(TreeNode *p)
-{
-	if (p != NULL)
-	{
-		if (p->left)
-			inOrder(p->left);
-
-		cout << " " << p->value << " ";
-
-		if (p->right)
-			inOrder(p->right);
-	}
-	else
-		return;
-}
-
-// Left, Right, Root
-
-void BST::postOrder(TreeNode *p)
-{
-	if (p != NULL)
-	{
-		if (p->left)
-			postOrder(p->left);
-
-		if (p->right)
-			postOrder(p->right);
-
-		cout << " " << p->value << " ";
-	}
-	else
-		return;
-}
-
-
-void BST::findMaxAtLevelK(TreeNode *p, int level)
-{
+	// TODO: Fix base case.
 	if (level == 0)
 	{
-		cout << "Max element at this level is: " << p->value << endl;;
+		cout << "Max element at this level is: " << p->getValue() << endl;;
 		return;
 	}
 
-	if (root != NULL)
+	if (root != nullptr)
 	{
-		if (p->right)
+		if (p->getRightChild())
 		{
 			--level;
-			return findMaxAtLevelK(p->right, level);
+			return findMaxAtLevelK(p->getRightChild(), level);
 		}
-		if (p->left)
+		if (p->getLeftChild())
 		{
 			--level;
-			return findMaxAtLevelK(p->left, level);
+			return findMaxAtLevelK(p->getLeftChild(), level);
 		}
 	}
 	else
 	{
 		cout << "Level does not exist!";
+		return;
+	}
+}
+
+// Root, Left, Right.
+template <class T>
+void BST::preOrder(TreeNode *p) const
+{
+	if (root != nullptr)
+	{
+		std::cout << " " << p->getValue() << " ";
+
+		if (p->left)
+		{
+			preOrder(p->getLeftChild());
+		}
+
+		if (p->right)
+		{
+			preOrder(p->getRightChild());
+		}
+	}
+	else
+	{
+		return;
+	}
+}
+
+// Left, Root, Right
+template <class T>
+void BST::inOrder(TreeNode *p) const
+{
+	if (p != nullptr)
+	{
+		if (p->getLeftChild())
+		{
+			inOrder(p->getLeftChild());
+		}
+		
+		std::cout << " " << p->getValue() << " ";
+
+		if (p->right)
+		{
+			inOrder(p->getRightChild());
+		}
+	}
+	else
+	{
+		return;
+	}
+}
+
+// Left, Right, Root
+template <class T>
+void BST::postOrder(TreeNode *p) const
+{
+	if (p != nullptr)
+	{
+		if (p->getLeftChild())
+		{
+			postOrder(p->getLeftChild());
+		}
+
+		if (p->getRightChild())
+		{
+			postOrder(p->getRightChild());
+		}
+
+		std::cout << " " << p->getValue() << " ";
+	}
+	else
+	{
 		return;
 	}
 }
