@@ -29,7 +29,7 @@ public:
 	void emptyList();
 	bool remove(const T &data);
 	bool contains(const T &data) const;
-	bool isEmpty() const;
+	bool isEmpty() const { return _head == nullptr };
 	void printListElements();
 };
 
@@ -156,12 +156,6 @@ bool LinkedList<T>::contains(const T &data) const
 	}
 
 	return false;
-}
-
-template <class T>
-bool LinkedList<T>::isEmpty() const
-{
-	return _head == nullptr;
 }
 
 template <class T>
