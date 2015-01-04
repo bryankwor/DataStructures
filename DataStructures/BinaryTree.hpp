@@ -10,14 +10,14 @@ private:
 
 public:
 	// Constructors / Destructors.
-	TreeNode() : _leftChild(nullptr), _right(nullptr), _value(0) {}
+	TreeNode() : _leftChild(nullptr), _rightChild(nullptr), _value(0) {}
 
 	// Getters / Setters.
 	TreeNode* getLeftChild() const { return _leftChild; }
-	void setLeftChild(const TreeNode* newLeftChild) { _leftChild = newLeftChild; }
+	void setLeftChild(TreeNode* newLeftChild) { _leftChild = newLeftChild; }
 
 	TreeNode* getRightChild() const { return _rightChild; }
-	void setRightChild(const TreeNode* newRightChild) { _rightChild = newRightChild; }
+	void setRightChild(TreeNode* newRightChild) { _rightChild = newRightChild; }
 
 	T getValue() const { return _value; }
 	void setValue(const T &value) { _value = value; }
@@ -31,35 +31,37 @@ private:
 
 private:
 	TreeNode<T>* getItemPositionInTree(const T &item, TreeNode<T>* parent);
+	void preOrder(const TreeNode<T>* p) const;
+	void inOrder(const TreeNode<T>* p) const;
+	void postOrder(const TreeNode<T>* p) const;
 
 public:
 	// Constructors / Desctructors.
-	BST() : root(nullptr) {}
+	BST() : _root(nullptr) {}
 
 	// Member Functions.
 	bool contains(const T &item) const;
+	bool isEmpty() const { return _root == nullptr; }
 
 	void insertItem(const T &item);
 	void removeItem(const T &item);
 
-	void findMaxAtLevel(TreeNode<T> *p, const int &level) const;
-	void preOrder(TreeNode<T> *p) const;
-	void inOrder(TreeNode<T> *p) const;
-	void postOrder(TreeNode<T> *p) const;
+ 	T findMaxAtLevel(TreeNode<T> *p, const int &level) const;
+	void printPreOrder() const;
+	void printInOrder() const;
+	void printPostOrder() const;
 };
 
 template <class T>
 TreeNode<T>* BST<T>::getItemPositionInTree(const T &item, TreeNode<T>* parent)
 {
-	bool found = false;
-	TreeNode<T> *current = root;
+	TreeNode<T> *current = _root;
 
 	// Traverse tree to find item.
 	while (current)
 	{
 		if (item == current->getValue())
 		{
-			found = true;
 			break;
 		}
 		else
@@ -76,7 +78,7 @@ TreeNode<T>* BST<T>::getItemPositionInTree(const T &item, TreeNode<T>* parent)
 		}
 	}
 
-	if (current == nullptr)
+	if (!current)
 	{
 		// TODO: Assert (Attempt to find nonexistent item in tree!)
 	}
@@ -88,7 +90,7 @@ bool BST<T>::contains(const T &item) const
 {
 	// TODO: This can be optimized by having the insert function store the value of each new item added to the tree in a hash table.
 	// Then this function can just look up the value in the hash table in constant time, provided there are no collisions.
-	TreeNode<T> *current = root;
+	TreeNode<T> *current = _root;
 
 	// Traverse tree to find item.
 	while (current)
@@ -116,19 +118,19 @@ bool BST<T>::contains(const T &item) const
 template <class T>
 void BST<T>::insertItem(const T &item)
 {
-	TreeNode<T>* newNode = new TreeNode();
+	TreeNode<T>* newNode = new TreeNode<T>();
 	newNode->setValue(item);
 
 	// Check if the tree is new.
-	if (root == nullptr)
+	if (!_root)
 	{
-		root = newNode;
+		_root = newNode;
 	}
 	else
 	{
 		// Create a pointer to traverse the tree, starting at the root.
 		TreeNode<T> *parent = nullptr;
-		TreeNode<T> *current = root;
+		TreeNode<T> *current = _root;
 
 		// Find correct position for new node; smaller elements go left, larger elements go right.
 		while (current)
@@ -160,7 +162,7 @@ template <class T>
 void BST<T>::removeItem(const T &item)
 {
 	// Check if the tree is empty or doesn't contain the item.
-	if (root == nullptr || !contains(item))
+	if (!_root || !contains(item))
 	{
 		return;
 	}
@@ -171,7 +173,7 @@ void BST<T>::removeItem(const T &item)
 		TreeNode<T>* current = getItemPositionInTree(item, parent);
 
 		// Case 1: The item is in a leaf node.
-		if (current->getLeftChild() == nullptr && current->getRightChild() == nullptr)
+		if (!current->getLeftChild() && !current->getRightChild())
 		{
 			if (current == parent->getLeftChild())
 			{
@@ -187,11 +189,11 @@ void BST<T>::removeItem(const T &item)
 		}
 
 		// Case 2: The item is in a node with 1 child.
-		else if ((current->getLeftChild() == nullptr && current->getRightChild() != nullptr) ||
-			(current->getLeftChild() != nullptr && current->getRightChild() == nullptr))
+		else if ((!current->getLeftChild() && current->getRightChild()) ||
+				(current->getLeftChild() && !current->getRightChild()))
 		{
 			// Is the node's 1 child in the right?
-			if (current->getLeftChild() == nullptr)
+			if (!current->getLeftChild())
 			{
 				// Is the node a left child?
 				if (parent->getLeftChild() == current)
@@ -206,7 +208,7 @@ void BST<T>::removeItem(const T &item)
 					delete current;
 				}
 			}
-			// Node's 1 child is in the left
+			// Node's 1 child is in the left.
 			else
 			{
 				if (parent->getLeftChild() == current)
@@ -231,7 +233,7 @@ void BST<T>::removeItem(const T &item)
 			check = current->getRightChild();
 
 			// Does right child have any children?
-			if ((check->getLeftChild() == nullptr) && (check->getRightChild() == nullptr))
+			if (!check->getLeftChild() && !check->getRightChild())
 			{
 				current = check;
 				delete check;
@@ -241,14 +243,14 @@ void BST<T>::removeItem(const T &item)
 			else
 			{
 				// If the right child has a left child, move all the way down left to locate smallest item
-				if ((current->getRightChild())->getLeftChild() != nullptr)
+				if (current->getRightChild()->getLeftChild())
 				{
 					TreeNode<T> *leftCurrent;
 					TreeNode<T> *leftCurrentPtr;
 					leftCurrentPtr = current->getRightChild();
 					leftCurrent = (current->getRightChild())->getLeftChild();
 
-					while (leftCurrent->getLeftChild() != nullptr)
+					while (leftCurrent->getLeftChild())
 					{
 						leftCurrentPtr = leftCurrent;
 						leftCurrent = leftCurrent->getLeftChild();
@@ -272,16 +274,14 @@ void BST<T>::removeItem(const T &item)
 }
 
 template <class T>
-void BST<T>::findMaxAtLevel(TreeNode<T> *p, const int &level) const
+T BST<T>::findMaxAtLevel(TreeNode<T> *p, const int &level) const
 {
-	// TODO: Fix base case.
 	if (level == 0)
 	{
-		cout << "Max element at this level is: " << p->getValue() << endl;;
-		return;
+		return p->getValue();
 	}
 
-	if (root != nullptr)
+	if (_root)
 	{
 		if (p->getRightChild())
 		{
@@ -296,79 +296,96 @@ void BST<T>::findMaxAtLevel(TreeNode<T> *p, const int &level) const
 	}
 	else
 	{
-		cout << "Level does not exist!";
-		return;
+		return 0;
+	}
+}
+
+template <class T>
+void BST<T>::printPreOrder() const
+{
+	if (_root)
+	{
+		preOrder(_root);
+	}
+	else
+	{
+		std::cout << "WARNING: Attempt to print empty tree.\n";
 	}
 }
 
 // Root, Left, Right.
 template <class T>
-void BST<T>::preOrder(TreeNode<T> *p) const
+void BST<T>::preOrder(const TreeNode<T> *p) const
 {
-	if (root != nullptr)
+	std::cout << " " << p->getValue() << " \n";
+
+	if (p->getLeftChild())
 	{
-		std::cout << " " << p->getValue() << " ";
+		preOrder(p->getLeftChild());
+	}
 
-		if (p->left)
-		{
-			preOrder(p->getLeftChild());
-		}
+	if (p->getRightChild())
+	{
+		preOrder(p->getRightChild());
+	}
+}
 
-		if (p->right)
-		{
-			preOrder(p->getRightChild());
-		}
+template <class T>
+void BST<T>::printInOrder() const
+{
+	if (_root)
+	{
+		inOrder(_root);
 	}
 	else
 	{
-		return;
+		std::cout << "WARNING: Attempt to print empty tree.\n";
 	}
 }
 
 // Left, Root, Right
 template <class T>
-void BST<T>::inOrder(TreeNode<T> *p) const
+void BST<T>::inOrder(const TreeNode<T> *p) const
 {
-	if (p != nullptr)
+	if (p->getLeftChild())
 	{
-		if (p->getLeftChild())
-		{
-			inOrder(p->getLeftChild());
-		}
+		inOrder(p->getLeftChild());
+	}
 		
-		std::cout << " " << p->getValue() << " ";
+	std::cout << " " << p->getValue() << " \n";
 
-		if (p->right)
-		{
-			inOrder(p->getRightChild());
-		}
+	if (p->getRightChild())
+	{
+		inOrder(p->getRightChild());
+	}
+}
+
+template <class T>
+void BST<T>::printPostOrder() const
+{
+	if (_root)
+	{
+		postOrder(_root);
 	}
 	else
 	{
-		return;
+		std::cout << "WARNING: Attempt to print empty tree.\n";
 	}
 }
 
 // Left, Right, Root
 template <class T>
-void BST<T>::postOrder(TreeNode<T> *p) const
+void BST<T>::postOrder(const TreeNode<T> *p) const
 {
-	if (p != nullptr)
+	if (p->getLeftChild())
 	{
-		if (p->getLeftChild())
-		{
-			postOrder(p->getLeftChild());
-		}
-
-		if (p->getRightChild())
-		{
-			postOrder(p->getRightChild());
-		}
-
-		std::cout << " " << p->getValue() << " ";
+		postOrder(p->getLeftChild());
 	}
-	else
+
+	if (p->getRightChild())
 	{
-		return;
+		postOrder(p->getRightChild());
 	}
+
+	std::cout << " " << p->getValue() << " \n";
 }
