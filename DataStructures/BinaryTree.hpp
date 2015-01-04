@@ -177,98 +177,34 @@ void BST<T>::removeItem(const T &item)
 		{
 			if (current == parent->getLeftChild())
 			{
-				parent->getLeftChild() = nullptr;
+				parent->setLeftChild(nullptr);
 			}
 			else
 			{
-				parent->getRightChild() = nullptr;
+				parent->setRightChild(nullptr);
 			}
 
 			delete current;
 			return;
 		}
 
-		// Case 2: The item is in a node with 1 child.
+		// TODO: Case 2: The item is in a node with 1 child.
 		else if ((!current->getLeftChild() && current->getRightChild()) ||
 				(current->getLeftChild() && !current->getRightChild()))
 		{
 			// Is the node's 1 child in the right?
-			if (!current->getLeftChild())
-			{
-				// Is the node a left child?
-				if (parent->getLeftChild() == current)
-				{
-					parent->setLeftChild(current->getRightChild());
-					delete current;
-				}
-				// Node is a right child
-				else
-				{
-					parent->setRightChild(current->getRightChild());
-					delete current;
-				}
-			}
-			// Node's 1 child is in the left.
-			else
-			{
-				if (parent->getLeftChild() == current)
-				{
-					parent->setLeftChild(current->getLeftChild());
-					delete current;
-				}
-				else
-				{
-					parent->setRightChild(current->getLeftChild());
-					delete current;
-				}
-			}
 
-			return;
+				// Is the node a left child?
+
+			// Node's 1 child is in the left.
 		}
 
-		// Case 3: The item is in a node with 2 children.
+		// TODO: Case 3: The item is in a node with 2 children.
 		else
 		{
-			TreeNode<T> *check;
-			check = current->getRightChild();
-
 			// Does right child have any children?
-			if (!check->getLeftChild() && !check->getRightChild())
-			{
-				current = check;
-				delete check;
-				current->setRightChild(nullptr);
-			}
-			// Right child has children
-			else
-			{
-				// If the right child has a left child, move all the way down left to locate smallest item
-				if (current->getRightChild()->getLeftChild())
-				{
-					TreeNode<T> *leftCurrent;
-					TreeNode<T> *leftCurrentPtr;
-					leftCurrentPtr = current->getRightChild();
-					leftCurrent = (current->getRightChild())->getLeftChild();
 
-					while (leftCurrent->getLeftChild())
-					{
-						leftCurrentPtr = leftCurrent;
-						leftCurrent = leftCurrent->getLeftChild();
-					}
-					current->setValue(leftCurrent->getValue());
-					delete leftCurrent;
-					leftCurrentPtr->setLeftChild(nullptr);
-				}
-
-				else
-				{
-					TreeNode<T> *temp;
-					temp = current->getRightChild();
-					current->setValue(temp->getValue());
-					current->setRightChild(temp->getRightChild());
-					delete temp;
-				}
-			}
+				// If the right child has a left child, move all the way down left to locate smallest item.
 		}
 	}
 }
@@ -296,7 +232,7 @@ T BST<T>::findMaxAtLevel(TreeNode<T> *p, const int &level) const
 	}
 	else
 	{
-		return 0;
+		std::cout << "WARNING: Level in tree does not exist."
 	}
 }
 
@@ -343,7 +279,7 @@ void BST<T>::printInOrder() const
 	}
 }
 
-// Left, Root, Right
+// Left, Root, Right.
 template <class T>
 void BST<T>::inOrder(const TreeNode<T> *p) const
 {
@@ -373,7 +309,7 @@ void BST<T>::printPostOrder() const
 	}
 }
 
-// Left, Right, Root
+// Left, Right, Root.
 template <class T>
 void BST<T>::postOrder(const TreeNode<T> *p) const
 {
