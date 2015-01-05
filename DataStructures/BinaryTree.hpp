@@ -178,7 +178,7 @@ void BST<T>::removeItem(const T &item)
 			else if ((!current->getLeftChild() && current->getRightChild()) ||
 					(current->getLeftChild() && !current->getRightChild()))
 			{
-				TreeNode* temp = _root;
+				TreeNode<T>* temp = _root;
 				if (current->getLeftChild())
 				{
 					_root = current->getLeftChild();
@@ -248,7 +248,7 @@ void BST<T>::removeItem(const T &item)
 		// Case 4: The item is in a node with 2 children.
 		else
 		{
-			TreeNode* temp = current->getRightChild();
+			TreeNode<T>* temp = current->getRightChild();
 
 			if (!temp->getLeftChild() && !temp->getRightChild())
 			{
@@ -268,7 +268,7 @@ void BST<T>::removeItem(const T &item)
 			else
 			{
 				current->setValue(temp->getValue());
-				current->setRightChild(temp->getRightChild())
+				current->setRightChild(temp->getRightChild());
 				delete temp;
 			}
 		}
