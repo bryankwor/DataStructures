@@ -9,10 +9,8 @@ private:
 	T _value;
 
 public:
-	// Constructors / Destructors.
 	TreeNode() : _leftChild(nullptr), _rightChild(nullptr), _value(0) {}
 
-	// Getters / Setters.
 	TreeNode* getLeftChild() const { return _leftChild; }
 	void setLeftChild(TreeNode* newLeftChild) { _leftChild = newLeftChild; }
 
@@ -36,10 +34,8 @@ private:
 	void postOrder(const TreeNode<T>* p) const;
 
 public:
-	// Constructors / Desctructors.
 	BST() : _root(nullptr) {}
 
-	// Member Functions.
 	bool contains(const T &item) const;
 	bool isEmpty() const { return _root == nullptr; }
 
@@ -57,7 +53,7 @@ TreeNode<T>* BST<T>::getItemPositionInTree(const T &item, TreeNode<T>* parent)
 {
 	TreeNode<T> *current = _root;
 
-	// Traverse tree to find item.
+	// Traverse tree to find the item.
 	while (current)
 	{
 		if (item == current->getValue())
@@ -92,7 +88,7 @@ bool BST<T>::contains(const T &item) const
 	// Then this function can just look up the value in the hash table in constant time, provided there are no collisions.
 	TreeNode<T> *current = _root;
 
-	// Traverse tree to find item.
+	// Traverse tree to find the item.
 	while (current)
 	{
 		if (item == current->getValue())
@@ -128,7 +124,6 @@ void BST<T>::insertItem(const T &item)
 	}
 	else
 	{
-		// Create a pointer to traverse the tree, starting at the root.
 		TreeNode<T> *parent = nullptr;
 		TreeNode<T> *current = _root;
 
@@ -166,45 +161,116 @@ void BST<T>::removeItem(const T &item)
 	{
 		return;
 	}
-	// Item exists. Get its position in the tree and handle 3 deletion cases.
+	// Get the item position in the tree and handle 4 deletion cases.
 	else
 	{
 		TreeNode<T>* parent = nullptr;
 		TreeNode<T>* current = getItemPositionInTree(item, parent);
 
-		// Case 1: The item is in a leaf node.
+		// Case 1: Deleting the root.
+		if (current == parent)
+		{
+			if (!current->getLeftChild() && !current->getRightChild())
+			{
+				delete _root;
+				_root = nullptr;
+			}
+			else if ((!current->getLeftChild() && current->getRightChild()) ||
+					(current->getLeftChild() && !current->getRightChild()))
+			{
+				TreeNode* temp = _root;
+				if (current->getLeftChild())
+				{
+					_root = current->getLeftChild();
+				}
+				else
+				{
+					_root = current->getRightChild();
+				}
+
+				delete temp;
+			}
+			else
+			{
+				// TODO: Handle case where root has 2 children.
+			}
+		}
+
+		// Case 2: The item is in a leaf node.
 		if (!current->getLeftChild() && !current->getRightChild())
 		{
 			if (current == parent->getLeftChild())
 			{
 				parent->setLeftChild(nullptr);
 			}
-			else
+			else if (current == parent->getRightChild())
 			{
 				parent->setRightChild(nullptr);
 			}
+			// Deleting the root which has no children, so the tree is now empty.
+			
 
 			delete current;
 			return;
 		}
 
-		// TODO: Case 2: The item is in a node with 1 child.
+		// Case 3: The item is in a node with 1 child.
 		else if ((!current->getLeftChild() && current->getRightChild()) ||
 				(current->getLeftChild() && !current->getRightChild()))
 		{
-			// Is the node's 1 child in the right?
+			if (current == parent->getLeftChild())
+			{
+				if (current->getLeftChild())
+				{
+					parent->setLeftChild(current->getLeftChild());
+				}
+				else
+				{
+					parent->setLeftChild(current->getRightChild());
+				}
+			}
+			else if (current == parent->getRightChild())
+			{
+				if (current->getLeftChild())
+				{
+					parent->setRightChild(current->getLeftChild());
+				}
+				else
+				{
+					parent->setRightChild(current->getLeftChild());
+				}
+			}
 
-				// Is the node a left child?
 
-			// Node's 1 child is in the left.
+			delete current;
 		}
 
-		// TODO: Case 3: The item is in a node with 2 children.
+		// Case 4: The item is in a node with 2 children.
 		else
 		{
-			// Does right child have any children?
+			TreeNode* temp = current->getRightChild();
 
-				// If the right child has a left child, move all the way down left to locate smallest item.
+			if (!temp->getLeftChild() && !temp->getRightChild())
+			{
+				current->setValue(temp->getValue());
+				delete temp;
+			}
+			else if (temp->getLeftChild())
+			{
+				while (temp->getLeftChild())
+				{
+					temp = temp->getLeftChild();
+				}
+
+				current->setValue(temp->getValue());
+				delete temp;
+			}
+			else
+			{
+				current->setValue(temp->getValue());
+				current->setRightChild(temp->getRightChild())
+				delete temp;
+			}
 		}
 	}
 }
